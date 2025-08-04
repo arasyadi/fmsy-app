@@ -1,0 +1,32 @@
+{
+  "Holothuria scabra": {
+    "linf": 30.66,
+    "k": 0.34,
+    "commonName": "Teripang Pasir",
+    "description": "Spesies teripang yang umum ditemukan di perairan dangkal berpasir."
+  },
+  "Holothuria atra": {
+    "linf": 28.40,
+    "k": 0.38,
+    "commonName": "Teripang Hitam",
+    "description": "Spesies teripang dengan tubuh berwarna hitam, hidup di terumbu karang."
+  },
+  "Apostichopus japonicus": {
+    "linf": 35.20,
+    "k": 0.29,
+    "commonName": "Teripang Jepang",
+    "description": "Spesies teripang bernilai tinggi yang banyak dibudidayakan di Asia Timur."
+  },
+  "Thelenota ananas": {
+    "linf": 45.80,
+    "k": 0.25,
+    "commonName": "Teripang Nanas",
+    "description": "Spesies teripang besar dengan tonjolan seperti kulit nanas."
+  },
+  "Bohadschia argus": {
+    "linf": 32.10,
+    "k": 0.31,
+    "commonName": "Teripang Bintik",
+    "description": "Disebut juga teripang bintang karena pola bintik-bintiknya."
+  }
+}

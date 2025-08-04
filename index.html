@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prediksi Usia Teripang (Class: Holothuroidea) - Von Bertalanffy</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/regression@2.0.1/dist/regression.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="university-logo"></div>
+      <h1><i class="fas fa-water"></i> Prediksi Usia Teripang (Class: Holothuroidea)</h1>
+      <p class="subtitle">Aplikasi untuk memprediksi usia Teripang berdasarkan panjang tubuh menggunakan model pertumbuhan Von Bertalanffy</p>
+      
+      <div class="creator-info">
+        <strong>Dibuat oleh: Andy Rasyadi, S.Pi., M.Si.</strong>
+        Dosen Manajemen Sumberdaya Perairan, Fakultas Kelautan dan Perikanan, Universitas Udayana
+      </div>
+    </header>
+    
+    <div class="grid-container">
+      <div class="input-card">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-sliders-h"></i> Parameter Model</h2>
+          </div>
+          
+          <div class="input-group">
+            <div class="input-row">
+              <div class="input-field">
+                <label for="species"><i class="fas fa-fish"></i> Nama Spesies</label>
+                <input type="text" id="species" placeholder="Contoh: Holothuria scabra">
+                <div id="species-suggestions" class="suggestions-container"></div>
+                <div class="database-info">Database ilmiah akan dicocokkan dengan nama spesies yang diinput</div>
+              </div>
+            </div>
+            
+            <div class="input-row">
+              <div class="input-field">
+                <label for="linf"><i class="fas fa-ruler"></i> L&infin; (Panjang maksimum, cm)</label>
+                <input type="number" id="linf" value="30.66" step="0.01" placeholder="Masukkan panjang maksimum">
+              </div>
+              
+              <div class="input-field">
+                <label for="k"><i class="fas fa-calculator"></i> K (Konstanta pertumbuhan)</label>
+                <input type="number" id="k" value="0.34" step="0.01" placeholder="Masukkan konstanta pertumbuhan">
+              </div>
+            </div>
+            
+            <div class="formula-box">
+              Rumus Von Bertalanffy: <span class="highlight">L<sub>t</sub> = L&infin; &times; (1 - e<sup>-K(t - t&#8320;)</sup>)</span>
+            </div>
+            
+            <div class="info-box">
+              <i class="fas fa-info-circle"></i> Parameter L&infin; dan K didapatkan dari penelitian sebelumnya. 
+              Nilai default yang ditampilkan adalah contoh nilai yang umum digunakan untuk Teripang yang anda pilih.
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="csvInput"><i class="fas fa-file-csv"></i> Data Panjang Teripang (CSV)</label>
+            <div class="file-input-container">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span class="file-name" id="fileName">Belum ada file dipilih</span>
+              <input type="file" id="csvInput" class="file-input" accept=".csv">
+            </div>
+            <div class="info-box">
+              <i class="fas fa-info-circle"></i> File CSV harus berisi satu kolom panjang Teripang dalam satuan cm. 
+              Contoh format: 12.5, 15.2, 18.7, ...
+            </div>
+          </div>
+          
+          <div class="btn-container">
+            <button class="btn btn-calculate" onclick="calculateGrowth()">
+              <i class="fas fa-calculator"></i> Hitung Prediksi Usia
+            </button>
+            <button class="btn" onclick="resetForm()">
+              <i class="fas fa-redo"></i> Reset Form
+            </button>
+            <button class="btn" onclick="downloadCSV()">
+              <i class="fas fa-download"></i> Download Hasil
+            </button>
+          </div>
+          
+          <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Sedang memproses data...</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar"></i> Statistik Data Lengkap</h2>
+          </div>
+          <div class="stat-box" id="statBox">
+             <div class="stat-item">
+              <div class="stat-label">Jumlah Sampel</div>
+              <div class="stat-value" id="sampleCount">0</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Panjang Minimum</div>
+              <div class="stat-value" id="minLength">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Panjang Maksimum</div>
+              <div class="stat-value" id="maxLength">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Rata-rata Panjang</div>
+              <div class="stat-value" id="avgLength">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Median</div>
+              <div class="stat-value" id="median">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Modus</div>
+              <div class="stat-value" id="mode">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Standar Deviasi</div>
+              <div class="stat-value" id="stdDev">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Variansi</div>
+              <div class="stat-value" id="variance">0.00</div>
+              <div class="stat-label">cm&sup2;</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 1 (Q1)</div>
+              <div class="stat-value" id="q1">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 2 (Median)</div>
+              <div class="stat-value" id="q2">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 3 (Q3)</div>
+              <div class="stat-value" id="q3">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Range</div>
+              <div class="stat-value" id="range">0.00</div>
+              <div class="stat-label">cm</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card" id="ageStatsCard" style="display: none;">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar"></i> Statistik Prediksi Usia</h2>
+          </div>
+          <div class="stat-box" id="ageStatBox">
+            <div class="stat-item">
+              <div class="stat-label">Jumlah Sampel</div>
+              <div class="stat-value" id="ageSampleCount">0</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Usia Minimum</div>
+              <div class="stat-value" id="minAge">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Usia Maksimum</div>
+              <div class="stat-value" id="maxAge">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Rata-rata Usia</div>
+              <div class="stat-value" id="avgAge">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Median</div>
+              <div class="stat-value" id="ageMedian">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Modus</div>
+              <div class="stat-value" id="ageMode">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Standar Deviasi</div>
+              <div class="stat-value" id="ageStdDev">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Variansi</div>
+              <div class="stat-value" id="ageVariance">0.00</div>
+              <div class="stat-label">tahun&sup2;</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 1 (Q1)</div>
+              <div class="stat-value" id="ageQ1">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 2 (Median)</div>
+              <div class="stat-value" id="ageQ2">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Kuartil 3 (Q3)</div>
+              <div class="stat-value" id="ageQ3">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">Range</div>
+              <div class="stat-value" id="ageRange">0.00</div>
+              <div class="stat-label">tahun</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card" id="interpretationCard" style="display: none;">
+          <div class="card-header">
+            <h2><i class="fas fa-info-circle"></i> Interpretasi Hasil</h2>
+          </div>
+          <div class="info-box" id="interpretationResult">
+            </div>
+        </div>
+        
+        <div class="card">
+          <div class="chart-header">
+            <h2><i class="fas fa-chart-line"></i> Visualisasi Pertumbuhan</h2>
+            <button class="btn" id="downloadChartBtn" onclick="downloadChart()" style="display: none;">
+              <i class="fas fa-download"></i> Unduh Grafik
+            </button>
+          </div>
+          <div class="chart-container">
+            <canvas id="regressionChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-card">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-table"></i> Hasil Prediksi</h2>
+          </div>
+          <div class="result-container">
+            <table id="resultTable">
+              <thead>
+                <tr>
+                  <th>Panjang (cm)</th>
+                  <th>Usia (tahun)</th>
+                  <th>Usia (bulan)</th>
+                  <th>Prediksi Lt+1 (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                </tbody>
+              <tfoot id="tableFooter" style="display: none;">
+                <tr>
+                  <td colspan="4" class="pagination-info"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          
+          <div class="regression-result" id="regressionResult">
+            </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>&copy; 2025 Andy Rasyadi | Aplikasi Prediksi Usia Teripang (Class: Holothuroidea) | Fakultas Kelautan dan Perikanan - Universitas Udayana</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
